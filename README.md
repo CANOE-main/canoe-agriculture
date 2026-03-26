@@ -3,6 +3,8 @@
 A production-ready, modular ETL pipeline that builds the **Agriculture** sector tables for the CANOE database.  
 It integrates **NRCan** (Comprehensive Energy Use Database) and **CER** (Energy Futures macro indicators) data, and allocates **Atlantic provinces** (PEI, NB, NS, NLLAB) using **Statistics Canada Table 25-10-0029-01** shares.
 
+Please visit [here](https://canoe-main.github.io/canoe-agriculture/) for information regarding the agriculture sector.
+
 > This README documents the `src/*_agri.py` modules produced in the refactor.
 
 ---
