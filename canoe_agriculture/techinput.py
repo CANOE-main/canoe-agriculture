@@ -9,7 +9,7 @@ Updated on Oct 7 2025 — Adds logic to assign any remainder (<1) to diesel (dsl
 from __future__ import annotations
 import pandas as pd
 from typing import Dict
-from common import setup_logging
+from canoe_agriculture.common import setup_logging
 import numpy as np
 
 logger = setup_logging()

@@ -13,6 +13,27 @@ import yaml
 
 LOGGER_NAME = "agri_etl"
 
+class Config:
+    def __init__(self, params: dict):
+        self.params = params
+    @property
+    def schema_version(self) -> int:
+        v = self.params.get("schema_version", [31])[0]
+        return int(v)
+    @property
+    def version(self) -> str:
+        v = self.params.get("version", "1")
+        return f"{int(v):03d}"  # "001", "012", "123"
+    @property
+    def periods(self) -> list[int]:
+        return list(self.params.get("periods", [2025]))
+    @property
+    def nrcan_year(self) -> int:
+        return int(self.params.get("NRCan_year", 2022))
+    @property
+    def db_name(self) -> Path:
+        return Path(self.params.get("db_name", "CAN_agriculture.sqlite"))
+
 def setup_logging(level: int = logging.INFO) -> logging.Logger:
     logger = logging.getLogger(LOGGER_NAME)
     if not logger.handlers:

@@ -1,3 +1,5 @@
+db_name: CAN_agriculture.sqlite
+
 #Write the version of the NRCan Comprehensive database you wish to use
 NRCan_year: 2022 #Check the NRCan website and find the most reason year in the database, that is the value to use
 
