@@ -28,8 +28,7 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/CANOE-main/canoe-schema"
-Changelog = "https://github.com/CANOE-main/canoe-schema/blob/main/CHANGELOG.md"
+Repository = "https://github.com/CANOE-main/canoe-agriculture"
 
 [tool.hatch.version]
 path = "canoe_agriculture/__init__.py"
