@@ -37,11 +37,6 @@ def setup_logging(level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-# def load_yaml(path: Path) -> Dict[str, Any]:
-#     with path.open("r", encoding="utf-8") as f:
-#         return yaml.safe_load(f)
-
-
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
