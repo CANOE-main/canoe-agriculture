@@ -11,17 +11,16 @@ from typing import Dict
 import pandas as pd
 from pathlib import Path
 
-from canoe_agriculture.common import setup_logging, project_paths, load_yaml, Config
+import tomllib
+from canoe_agriculture.common import setup_logging, project_paths, Config
 from canoe_agriculture.setup import load_runtime_agri
 from canoe_agriculture.techcom import build_technology_and_commodity_agri
 from canoe_agriculture.data_scraper import load_cached_or_fetch_agri
 from canoe_agriculture.statcan import load_statcan_agri_shares
 from canoe_agriculture.demands import build_demand_and_capacity_agri
-#from costs import build_cost_invest_agri
 from canoe_agriculture.techinput import build_limit_tech_input_split_agri
 from canoe_agriculture.efficiency import build_efficiency_agri
 from canoe_agriculture.post_processing import add_datasets_and_sources_agri
-# from post_processing import add_time_agri
 
 logger = setup_logging()
 
@@ -38,10 +37,12 @@ def write_comb_dict_to_db(db_path, tables, comb_dict: Dict[str, pd.DataFrame]) -
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Agriculture ETL Aggregator (with ATL split)")
-    parser.add_argument("--cfg", default="input/params.yaml", help="Path to configuration file")
+    parser.add_argument("--cfg", default="input/config.toml", help="Path to configuration file")
     args = parser.parse_args()
 
-    cfg = Config(load_yaml(Path(args.cfg)))
+    # Load config
+    with Path(args.cfg).open("rb") as f:
+        cfg = Config.model_validate(tomllib.load(f))
 
     # Init runtime
     db_path, cfg, tables, comb_dict = load_runtime_agri(cfg=cfg)
