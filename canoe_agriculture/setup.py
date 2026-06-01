@@ -62,7 +62,6 @@ def load_runtime_agri(cfg: Config) -> tuple[Path, Config, list[str], Dict[str, p
     id_dict["CAN"] = f"AGRIHR{cfg.version}"
 
     db_path = paths["outputs"] / cfg.db_name
-    # schema_sql = schema_file_for(cfg).read_text(encoding="utf-8")
     schema_sql = get_sql_schema(cfg.schema_version)
     tables = prepare_database(db_path, schema_sql)
     comb_dict = create_empty_comb_dict(db_path, tables)

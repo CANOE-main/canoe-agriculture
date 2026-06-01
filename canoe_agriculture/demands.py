@@ -8,6 +8,7 @@ from __future__ import annotations
 import pandas as pd
 from typing import Dict
 from canoe_agriculture.common import setup_logging
+from canoe_schema.v3_2.models import Demand
 
 logger = setup_logging()
 
@@ -68,12 +69,25 @@ def build_demand_and_capacity_agri(
                         split = _atl_split(base2022[pro], pro, atl_shares)
                         if split is None: continue
                         val, ref = float(split) * gdp_scale[year], 'A4'
+                d_rows.append(
+                    Demand(
+                        region=pro,
+                        period=int(year),
+                        commodity=sector_abv + dem.lower(),
+                        demand=float(val),
+                        unit="PJ",
+                        notes=notes,
+                        data_source=ref,
+                        dq_cred=1,
+                        dq_geog=1,
+                        dq_struc=2,
+                        dq_tech=3,
+                        dq_time=2,
+                        data_id=ids[pro]
+                    )
+                )
 
-                d_rows.append([
-                    pro, int(year), sector_abv + dem.lower(), float(val), 'PJ', notes, ref, 1,1,2,3,2, ids[pro]
-                ])
-
-    demand_df = pd.DataFrame(d_rows, columns=comb_dict['Demand'].columns)
+    demand_df = pd.DataFrame([row.model_dump(mode="python") for row in d_rows])
     comb_dict['Demand'] = pd.concat([comb_dict['Demand'], demand_df], ignore_index=True)
     logger.info("Demand rows: %d", len(d_rows))
 

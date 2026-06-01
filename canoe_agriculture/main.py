@@ -51,7 +51,7 @@ def main() -> None:
     comb_dict = build_technology_and_commodity_agri(comb_dict)
 
     # 2) External data
-    loaded_df, pop_df = load_cached_or_fetch_agri(cfg.nrcan_year, project_paths()['cache'])
+    loaded_df, pop_df = load_cached_or_fetch_agri(cfg.NRCan_year, project_paths()['cache'])
 
     # 3) StatCan ATL shares (agriculture)
     atl_shares = load_statcan_agri_shares(project_paths()['cache'])

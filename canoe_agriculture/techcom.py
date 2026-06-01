@@ -8,6 +8,7 @@ from __future__ import annotations
 import pandas as pd
 from typing import Dict
 from canoe_agriculture.common import setup_logging
+from canoe_schema.v3_2.models import Technology, Commodity
 
 logger = setup_logging()
 
@@ -22,8 +23,19 @@ def build_technology_and_commodity_agri(comb_dict: Dict[str, pd.DataFrame]) -> D
 
     tech_rows = []
     for i, sec in enumerate(sector_list):
-        tech_rows.append([sector_abv + sec, "a", "agriculture", "", "", 1, 1, 0, 0, 0, 0, 0, 0, f"Generic technology representing {sector_list_ex[i]}", ids['CAN']])
-    tech_df = pd.DataFrame(tech_rows, columns=comb_dict['Technology'].columns)
+        tech_rows.append(
+            Technology(
+                tech=sector_abv + sec,
+                flag="p",
+                sector="agriculture",
+                unlim_cap=1,
+                annual=1,
+                # NOTE: The rest of the flags are 0 by default
+                description=f"Generic technology representing {sector_list_ex[i]}",
+                data_id=ids['CAN']
+            )
+        )
+    tech_df = pd.DataFrame([row.model_dump(mode="python") for row in tech_rows])
     comb_dict['Technology'] = pd.concat([comb_dict['Technology'], tech_df], ignore_index=True)
 
     demand_com_list = ["D_" + s for s in sector_list]
@@ -37,8 +49,15 @@ def build_technology_and_commodity_agri(comb_dict: Dict[str, pd.DataFrame]) -> D
             flag = "d"; desc = f"Demand for the {desc_list[i]} sector"
         else:
             flag = "a"; desc = f"Represents {desc_list[i]} in the agriculture sector"
-        comm_rows.append([code, flag, desc, ids['CAN']])
-    comm_df = pd.DataFrame(comm_rows, columns=comb_dict['Commodity'].columns)
+        comm_rows.append(
+            Commodity(
+                name=code,
+                flag=flag,
+                description=desc,
+                data_id=ids['CAN']
+            )
+        )
+    comm_df = pd.DataFrame([row.model_dump(mode="python") for row in comm_rows])
     comb_dict['Commodity'] = pd.concat([comb_dict['Commodity'], comm_df], ignore_index=True)
 
     comb_dict['__demand_com_list__'] = demand_com_list

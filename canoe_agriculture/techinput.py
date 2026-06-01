@@ -9,8 +9,9 @@ Updated on Oct 7 2025 — Adds logic to assign any remainder (<1) to diesel (dsl
 from __future__ import annotations
 import pandas as pd
 from typing import Dict
-from canoe_agriculture.common import setup_logging
 import numpy as np
+from canoe_agriculture.common import setup_logging
+from canoe_schema.v3_2.models import LimitTechInputSplitAnnual
 
 logger = setup_logging()
 
@@ -87,13 +88,27 @@ def build_limit_tech_input_split_agri(comb_dict: Dict[str, pd.DataFrame], loaded
                     missing_total = max(0.0, 1.0 - total_known)
                     final_val = round(missing_total / na_count, 3)
 
-                rows.append([
-                    region, per, f"A_{com}", f"{sector_abv}AGRI", 'ge', final_val,
-                    ('Calculated from NRCan comprehensive database. If values were n.a., remainder to 100% assigned to diesel.'),
-                    'A1', 2, 1, 2, 3, 3, ids[region]
-                ])
+                rows.append(
+                    LimitTechInputSplitAnnual(
+                        region=region,
+                        period=per,
+                        input_comm=f"A_{com}",
+                        tech=f"{sector_abv}AGRI",
+                        operator='ge',
+                        proportion=final_val,
+                        notes='Calculated from NRCan comprehensive database. If values were n.a., remainder to 100% assigned to diesel.',
+                        data_source='A1',
+                        dq_cred=2,
+                        dq_geog=1,
+                        dq_struc=2,
+                        dq_tech=3,
+                        dq_time=3,
+                        data_id=ids[region]
+                    )
+                )
 
-    df = pd.DataFrame(rows, columns=comb_dict['LimitTechInputSplitAnnual'].columns)
+
+    df = pd.DataFrame([row.model_dump(mode="python") for row in rows])
     comb_dict['LimitTechInputSplitAnnual'] = pd.concat([comb_dict['LimitTechInputSplitAnnual'], df], ignore_index=True)
     logger.info("LimitTechInputSplitAnnual rows: %d", len(rows))
     return comb_dict
