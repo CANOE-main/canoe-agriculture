@@ -48,4 +48,4 @@ plugins = ["pydantic.mypy"]
 strict = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["test"]
