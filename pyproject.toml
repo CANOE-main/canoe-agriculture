@@ -30,9 +30,8 @@ dev = [
 [project.urls]
 Repository = "https://github.com/CANOE-main/canoe-agriculture"
 
-[tool.hatch.version]
-path = "canoe_agriculture/__init__.py"
-
+# NOTE: Version is declared statically in [project].
+# Remove Hatch file-based version configuration to avoid ambiguity.
 [tool.hatch.metadata] 
 allow-direct-references = true
 
