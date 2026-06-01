@@ -75,7 +75,7 @@ def build_demand_and_capacity_agri(
                         period=int(year),
                         commodity=sector_abv + dem.lower(),
                         demand=float(val),
-                        unit="PJ",
+                        units="PJ",
                         notes=notes,
                         data_source=ref,
                         dq_cred=1,

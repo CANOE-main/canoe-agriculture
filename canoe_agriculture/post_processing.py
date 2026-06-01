@@ -28,9 +28,7 @@ def add_datasets_and_sources_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[st
                 status='active',
                 author='David Turnbull - david.turnbull1@ucalgary.ca',
                 date='2025-08-01',
-                parent_id=np.nan,
-                changelog='Original sector design',
-                notes=np.nan
+                changelog='Original sector design'
             )
         )
     ds_rows.append(
@@ -42,9 +40,7 @@ def add_datasets_and_sources_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[st
             status='active',
             author='David Turnbull - david.turnbull1@ucalgary.ca',
             date='2025-08-01',
-            parent_id=np.nan,
             changelog='Original sector design',
-            notes=np.nan
         )
     )
     

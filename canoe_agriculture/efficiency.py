@@ -27,19 +27,19 @@ def build_efficiency_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.Da
     if eff_df.empty:
         eff_df = pd.DataFrame(columns=comb_dict['Efficiency'].columns)
 
-    eff_df = pd.DataFrame([
-        Efficiency(
-            region=src['region'],
-            input_comm=src['input_comm'],
-            tech=src['tech'],
-            vintage=src['period'],
-            output_comm=src['tech'].apply(_to_output_comm),
-            efficiency=1.0,
-            notes='All technologies assumed efficiency=1; commodities from NRCan Comp DB',
-            data_source='A1',
-            data_id=src['data_id'],
-        ).model_dump(mode='python')]
-    )
+    eff_df = src.apply(lambda r: Efficiency(
+        region=r['region'],
+        input_comm=r['input_comm'],
+        tech=r['tech'],
+        vintage=r['period'],
+        output_comm=_to_output_comm(r['tech']),
+        efficiency=1.0,
+        notes='All technologies assumed efficiency=1; commodities from NRCan Comp DB',
+        data_source='A1',
+        data_id=r['data_id'],
+    ), axis=1)
+
+    eff_df = pd.DataFrame([row.model_dump(mode="python") for row in eff_df])
     comb_dict['Efficiency'] = eff_df
     logger.info("Efficiency rows: %d", len(eff_df))
     return comb_dict
