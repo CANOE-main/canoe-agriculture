@@ -8,7 +8,6 @@ Created on Sun Aug 17 13:04:16 2025
 from __future__ import annotations
 from typing import Dict
 import pandas as pd
-import numpy as np
 from canoe_agriculture.common import setup_logging
 from canoe_schema.v3_2.models import (
     DataSet,
@@ -135,7 +134,8 @@ def add_time_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]
     for period in periods:
         tp.append(TimePeriod(sequence=x, period=period, flag="f"))
         x += 1
-    tp.append(TimePeriod(sequence=x, period=2055, flag="f"))
+    tp.append(TimePeriod(sequence=x, period=2055, flag="f"))
+
     ts = []
     for period in periods:
         x = 0
