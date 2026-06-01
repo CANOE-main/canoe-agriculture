@@ -135,7 +135,7 @@ def add_time_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]
     for period in periods:
         tp.append(TimePeriod(sequence=x, period=period, flag="f"))
         x += 1
-    tp.append([x, 2055, "f"])
+    tp.append(TimePeriod(sequence=x, period=2055, flag="f"))
     ts = []
     for period in periods:
         x = 0
