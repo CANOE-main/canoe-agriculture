@@ -4,6 +4,7 @@ Created on Thu Aug 14 19:26:36 2025
 
 @author: david
 """
+
 from __future__ import annotations
 import sqlite3
 from pathlib import Path
@@ -30,7 +31,12 @@ def prepare_database(db_path: Path, schema_sql: str) -> list[str]:
         logger.info("Removed existing DB: %s", db_path)
     with sqlite3.connect(db_path) as conn:
         conn.executescript(schema_sql)
-        tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
+        tables = [
+            r[0]
+            for r in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table';"
+            ).fetchall()
+        ]
     logger.info("Prepared new DB with %d tables", len(tables))
     return tables
 
@@ -45,7 +51,9 @@ def create_empty_comb_dict(db_path: Path, tables: list[str]) -> Dict[str, pd.Dat
     return comb_dict
 
 
-def load_runtime_agri(cfg: Config) -> tuple[Path, Config, list[str], Dict[str, pd.DataFrame]]:
+def load_runtime_agri(
+    cfg: Config,
+) -> tuple[Path, Config, list[str], Dict[str, pd.DataFrame]]:
     paths = project_paths()
 
     # domain constants (from your original script)

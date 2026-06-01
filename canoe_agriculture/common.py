@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 LOGGER_NAME = "agri_etl"
 
+
 class Config(BaseModel):
     schema_version: str = "3.1"
     periods: list[int]
@@ -48,4 +49,10 @@ def ensure_dir(path: Path) -> Path:
 
 def project_paths() -> dict[str, Path]:
     root = Path.cwd()
-    return {"root": root, "input": root / "input", "outputs": root / "outputs", "cache": root / "cache", "schema": root / "schema"}
+    return {
+        "root": root,
+        "input": root / "input",
+        "outputs": root / "outputs",
+        "cache": root / "cache",
+        "schema": root / "schema",
+    }

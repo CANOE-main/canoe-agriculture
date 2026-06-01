@@ -4,6 +4,7 @@ Created on Fri Aug 15 16:02:06 2025
 
 @author: david
 """
+
 from __future__ import annotations
 import pandas as pd
 from typing import Dict
@@ -13,33 +14,41 @@ from canoe_schema.v3_2.models import Efficiency
 
 logger = setup_logging()
 
+
 def _to_output_comm(tech: str) -> str | None:
-    parts = tech.split('_', 1)
+    parts = tech.split("_", 1)
     if len(parts) == 2:
         prefix, name = parts
         return f"{prefix}_d_{name.lower()}"
     return None
 
 
-def build_efficiency_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
-    src = comb_dict['LimitTechInputSplitAnnual'][['region','input_comm','tech','period','data_id']].copy()
-    eff_df = comb_dict['Efficiency'].copy()
+def build_efficiency_agri(
+    comb_dict: Dict[str, pd.DataFrame],
+) -> Dict[str, pd.DataFrame]:
+    src = comb_dict["LimitTechInputSplitAnnual"][
+        ["region", "input_comm", "tech", "period", "data_id"]
+    ].copy()
+    eff_df = comb_dict["Efficiency"].copy()
     if eff_df.empty:
-        eff_df = pd.DataFrame(columns=comb_dict['Efficiency'].columns)
+        eff_df = pd.DataFrame(columns=comb_dict["Efficiency"].columns)
 
-    eff_df = src.apply(lambda r: Efficiency(
-        region=r['region'],
-        input_comm=r['input_comm'],
-        tech=r['tech'],
-        vintage=r['period'],
-        output_comm=_to_output_comm(r['tech']),
-        efficiency=1.0,
-        notes='All technologies assumed efficiency=1; commodities from NRCan Comp DB',
-        data_source='A1',
-        data_id=r['data_id'],
-    ), axis=1)
+    eff_df = src.apply(
+        lambda r: Efficiency(
+            region=r["region"],
+            input_comm=r["input_comm"],
+            tech=r["tech"],
+            vintage=r["period"],
+            output_comm=_to_output_comm(r["tech"]),
+            efficiency=1.0,
+            notes="All technologies assumed efficiency=1; commodities from NRCan Comp DB",
+            data_source="A1",
+            data_id=r["data_id"],
+        ),
+        axis=1,
+    )
 
     eff_df = pd.DataFrame([row.model_dump(mode="python") for row in eff_df])
-    comb_dict['Efficiency'] = eff_df
+    comb_dict["Efficiency"] = eff_df
     logger.info("Efficiency rows: %d", len(eff_df))
     return comb_dict
