@@ -10,8 +10,18 @@ import logging
 from pathlib import Path
 from typing import Any, Dict
 import yaml
+from pydantic import BaseModel
 
 LOGGER_NAME = "agri_etl"
+
+
+class Config(BaseModel):
+    schema_version: str = "3.1"
+    periods: list[int]
+    version: str = "001"
+    NRCan_year: int = 2022
+    db_name: str = "CAN_agriculture.sqlite"
+
 
 def setup_logging(level: int = logging.INFO) -> logging.Logger:
     logger = logging.getLogger(LOGGER_NAME)
@@ -27,11 +37,6 @@ def setup_logging(level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
-    with path.open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -39,4 +44,10 @@ def ensure_dir(path: Path) -> Path:
 
 def project_paths() -> dict[str, Path]:
     root = Path.cwd()
-    return {"root": root, "input": root / "input", "outputs": root / "outputs", "cache": root / "cache", "schema": root / "schema"}
+    return {
+        "root": root,
+        "input": root / "input",
+        "outputs": root / "outputs",
+        "cache": root / "cache",
+        "schema": root / "schema",
+    }

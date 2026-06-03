@@ -4,33 +4,17 @@ Created on Thu Aug 14 19:26:36 2025
 
 @author: david
 """
+
 from __future__ import annotations
 import sqlite3
 from pathlib import Path
 from typing import Dict
 import pandas as pd
 
-from common import setup_logging, load_yaml, ensure_dir, project_paths
+from canoe_agriculture.common import setup_logging, Config, ensure_dir, project_paths
+from canoe_schema import get_sql_schema
 
 logger = setup_logging()
-
-class Config:
-    def __init__(self, params: dict):
-        self.params = params
-    @property
-    def schema_version(self) -> int:
-        v = self.params.get("schema_version", [31])[0]
-        return int(v)
-    @property
-    def version(self) -> str:
-        v = self.params.get("version", "1")
-        return f"{int(v):03d}"  # "001", "012", "123"
-    @property
-    def periods(self) -> list[int]:
-        return list(self.params.get("periods", [2025]))
-    @property
-    def nrcan_year(self) -> int:
-        return int(self.params.get("NRCan_year", 2022))
 
 
 def schema_file_for(cfg: Config) -> Path:
@@ -47,7 +31,12 @@ def prepare_database(db_path: Path, schema_sql: str) -> list[str]:
         logger.info("Removed existing DB: %s", db_path)
     with sqlite3.connect(db_path) as conn:
         conn.executescript(schema_sql)
-        tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
+        tables = [
+            r[0]
+            for r in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table';"
+            ).fetchall()
+        ]
     logger.info("Prepared new DB with %d tables", len(tables))
     return tables
 
@@ -62,10 +51,10 @@ def create_empty_comb_dict(db_path: Path, tables: list[str]) -> Dict[str, pd.Dat
     return comb_dict
 
 
-def load_runtime_agri(temp_db_name: str = "CAN_agriculture.sqlite") -> tuple[Path, Config, list[str], Dict[str, pd.DataFrame]]:
+def load_runtime_agri(
+    cfg: Config,
+) -> tuple[Path, Config, list[str], Dict[str, pd.DataFrame]]:
     paths = project_paths()
-    params = load_yaml(paths["input"] / "params.yaml")
-    cfg = Config(params)
 
     # domain constants (from your original script)
     sector_abv = "A_"
@@ -80,8 +69,8 @@ def load_runtime_agri(temp_db_name: str = "CAN_agriculture.sqlite") -> tuple[Pat
     id_dict = {p: f"AGRIHR{p}{cfg.version}" for p in province_list}
     id_dict["CAN"] = f"AGRIHR{cfg.version}"
 
-    db_path = paths["outputs"] / temp_db_name
-    schema_sql = schema_file_for(cfg).read_text(encoding="utf-8")
+    db_path = paths["outputs"] / cfg.db_name
+    schema_sql = get_sql_schema(cfg.schema_version)
     tables = prepare_database(db_path, schema_sql)
     comb_dict = create_empty_comb_dict(db_path, tables)
 
