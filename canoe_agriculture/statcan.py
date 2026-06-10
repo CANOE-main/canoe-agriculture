@@ -5,10 +5,8 @@ import requests
 import zipfile
 import io
 import pandas as pd
-
-from canoe_agriculture.common import setup_logging, ensure_dir
-
-logger = setup_logging()
+from loguru import logger
+from canoe_agriculture.common import ensure_dir
 STATCAN_URL = "https://www150.statcan.gc.ca/n1/tbl/csv/25100029-eng.zip"
 REGION_LIST = [
     "Newfoundland and Labrador",

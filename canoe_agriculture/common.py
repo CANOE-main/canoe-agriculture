@@ -52,20 +52,6 @@ class CANOEAgricultureConfig(BaseModel):
             return CANOEAgricultureConfig.model_validate(tomllib.load(f))
 
 
-def setup_logging(level: int = logging.INFO) -> logging.Logger:
-    logger = logging.getLogger(LOGGER_NAME)
-    if not logger.handlers:
-        logger.setLevel(level)
-        handler = logging.StreamHandler()
-        fmt = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        handler.setFormatter(fmt)
-        logger.addHandler(handler)
-    return logger
-
-
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path

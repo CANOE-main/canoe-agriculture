@@ -12,10 +12,9 @@ import pickle
 from typing import Dict
 import requests
 import pandas as pd
+from loguru import logger
+from canoe_agriculture.common import ensure_dir
 
-from canoe_agriculture.common import setup_logging, ensure_dir
-
-logger = setup_logging()
 
 NRCan_URL = "https://oee.nrcan.gc.ca/corporate/statistics/neud/dpa/showTable.cfm"
 CER_URL = (

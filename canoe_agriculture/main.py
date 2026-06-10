@@ -8,8 +8,8 @@ Created on Sun Aug 17 13:36:00 2025
 from __future__ import annotations
 import argparse
 import sqlite3
+from loguru import logger
 from canoe_agriculture.common import (
-    setup_logging,
     project_paths,
     CANOEAgricultureConfig,
 )
@@ -19,22 +19,8 @@ from canoe_agriculture.techcom import add_technology_and_fuel_commodities
 from canoe_agriculture.data_scraper import load_cached_or_fetch_agri
 from canoe_agriculture.statcan import load_statcan_agri_shares
 from canoe_agriculture.demands import build_demand_and_capacity_agri
-from canoe_agriculture.techinput import build_limit_tech_input_split_agri
-from canoe_agriculture.efficiency import build_efficiency_agri
+from canoe_agriculture.techinput import build_limit_tech_input_and_efficiency
 from canoe_agriculture.post_processing import add_datasets_and_sources_agri
-
-logger = setup_logging()
-
-
-# def write_comb_dict_to_db(db_path, tables, comb_dict: Dict[str, pd.DataFrame]) -> None:
-#     with sqlite3.connect(db_path) as conn:
-#         for table in tables:
-#             df = comb_dict.get(table)
-#             if df is None or df.empty:
-#                 logger.warning("Skipping empty table: %s", table)
-#                 continue
-#             df.to_sql(table, conn, if_exists="append", index=False)
-#             logger.info("Wrote %d rows to %s", len(df), table)
 
 
 def main() -> None:
@@ -76,21 +62,16 @@ def main() -> None:
     )
 
     # 3) LimitTechInputSplitAnnual from NRCan shares (ATL uses ATL table)
-    comb_dict = build_limit_tech_input_split_agri(cfg, db_cursor, comb_dict, nrcan_df)
+    # Efficiency rows are built here but default to 1
+    comb_dict = build_limit_tech_input_and_efficiency(
+        cfg, db_cursor, comb_dict, nrcan_df
+    )
 
-    # 6) Efficiency (derived from techinput)
-    comb_dict = build_efficiency_agri(comb_dict)
-
-    # 7) Costs
+    # Costs
     # comb_dict = build_cost_invest_agri(comb_dict)
 
-    # 8) Post-processing
-    comb_dict = add_datasets_and_sources_agri(comb_dict)
-    # 9) Testing purposes, add region and times in
-    # comb_dict = add_time_agri(comb_dict)
-
-    # 10) Persist
-    # write_comb_dict_to_db(db_path, tables, comb_dict)
+    # 4) Data provenance: register the datasets used
+    comb_dict = add_datasets_and_sources_agri(db_cursor, comb_dict)
 
     db_conn.commit()
     db_conn.close()

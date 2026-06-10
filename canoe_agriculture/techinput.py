@@ -2,14 +2,21 @@
 from __future__ import annotations
 from sqlite3 import Cursor
 import pandas as pd
+from loguru import logger
 from typing import Dict
-from canoe_agriculture.common import CANOEAgricultureConfig, setup_logging
-from canoe_schema.v4_0.models import LimitTechInputSplitAnnual
-
-logger = setup_logging()
+from canoe_agriculture.common import CANOEAgricultureConfig
+from canoe_schema.v4_0.models import Efficiency, LimitTechInputSplitAnnual
 
 
-def build_limit_tech_input_split_agri(
+def _to_output_comm(tech: str) -> str | None:
+    parts = tech.split("_", 1)
+    if len(parts) == 2:
+        prefix, name = parts
+        return f"{prefix}_d_{name.lower()}"
+    return None
+
+
+def build_limit_tech_input_and_efficiency(
     module_config: CANOEAgricultureConfig,
     db_cursor: Cursor,
     comb_dict: Dict[str, pd.DataFrame],
@@ -27,6 +34,7 @@ def build_limit_tech_input_split_agri(
             f"Available fuels: {sorted(configured_fuels)}"
         )
 
+    efficiency_rows = []
     limit_tech_annual_rows = []
     for region in module_config.province_list:
         for per in module_config.future_periods:
@@ -105,8 +113,26 @@ def build_limit_tech_input_split_agri(
                     )
                 )
 
+                efficiency_rows.append(
+                    Efficiency(
+                        region=region,
+                        input_comm=f"{module_config.sector_initial}_{com}",
+                        tech=f"{module_config.sector_initial}_{module_config.sector_abv}",
+                        vintage=per,
+                        output_comm=_to_output_comm(
+                            f"{module_config.sector_initial}_{module_config.sector_abv}"
+                        ),
+                        efficiency=1.0,
+                        notes="All technologies assumed efficiency=1; commodities from NRCan Comp DB",
+                        data_source="A1",
+                        data_id=ids[region],
+                    )
+                )
+
     db_cursor.executemany(
         *LimitTechInputSplitAnnual.bulk_insert_or_ignore_sql(limit_tech_annual_rows)
     )
-    logger.info("Demand rows: %d", len(limit_tech_annual_rows))
+    logger.info("LimitTechInputSplitAnnual rows: %d", len(limit_tech_annual_rows))
+    db_cursor.executemany(*Efficiency.bulk_insert_or_ignore_sql(efficiency_rows))
+    logger.info("Efficiency rows: %d", len(efficiency_rows))
     return comb_dict

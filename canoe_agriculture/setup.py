@@ -10,16 +10,12 @@ import sqlite3
 from pathlib import Path
 from typing import Dict
 import pandas as pd
-
+from loguru import logger
 from canoe_agriculture.common import (
-    setup_logging,
     CANOEAgricultureConfig,
     ensure_dir,
     project_paths,
 )
-from canoe_schema import get_sql_schema
-
-logger = setup_logging()
 
 
 def schema_file_for(cfg: CANOEAgricultureConfig) -> Path:

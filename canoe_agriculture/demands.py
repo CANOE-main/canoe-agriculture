@@ -10,10 +10,9 @@ from itertools import product
 from sqlite3 import Cursor
 import pandas as pd
 from typing import Dict
-from canoe_agriculture.common import CANOEAgricultureConfig, setup_logging
+from canoe_agriculture.common import CANOEAgricultureConfig
 from canoe_schema.v4_0.models import Demand, ExistingCapacity
-
-logger = setup_logging()
+from loguru import logger
 
 # TODO This values could be put somewhere either more directly tied to their purpose
 # or where we generally put parameters
