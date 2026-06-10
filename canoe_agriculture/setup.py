@@ -11,13 +11,18 @@ from pathlib import Path
 from typing import Dict
 import pandas as pd
 
-from canoe_agriculture.common import setup_logging, Config, ensure_dir, project_paths
+from canoe_agriculture.common import (
+    setup_logging,
+    CANOEAgricultureConfig,
+    ensure_dir,
+    project_paths,
+)
 from canoe_schema import get_sql_schema
 
 logger = setup_logging()
 
 
-def schema_file_for(cfg: Config) -> Path:
+def schema_file_for(cfg: CANOEAgricultureConfig) -> Path:
     paths = project_paths()
     if cfg.schema_version != 31:
         return paths["schema"] / f"schema_{cfg.schema_version}.sql"
@@ -31,13 +36,20 @@ def prepare_database(db_path: Path, schema_sql: str) -> list[str]:
         logger.info("Removed existing DB: %s", db_path)
     with sqlite3.connect(db_path) as conn:
         conn.executescript(schema_sql)
+
+    tables = retrieve_tables_from_db(db_path)
+    logger.info("Prepared new DB with %d tables", len(tables))
+    return tables
+
+
+def retrieve_tables_from_db(db_path):
+    with sqlite3.connect(db_path) as conn:
         tables = [
             r[0]
             for r in conn.execute(
                 "SELECT name FROM sqlite_master WHERE type='table';"
             ).fetchall()
         ]
-    logger.info("Prepared new DB with %d tables", len(tables))
     return tables
 
 
@@ -52,8 +64,8 @@ def create_empty_comb_dict(db_path: Path, tables: list[str]) -> Dict[str, pd.Dat
 
 
 def load_runtime_agri(
-    cfg: Config,
-) -> tuple[Path, Config, list[str], Dict[str, pd.DataFrame]]:
+    cfg: CANOEAgricultureConfig,
+) -> tuple[Path, CANOEAgricultureConfig, list[str], Dict[str, pd.DataFrame]]:
     paths = project_paths()
 
     # domain constants (from your original script)
@@ -69,9 +81,10 @@ def load_runtime_agri(
     id_dict = {p: f"AGRIHR{p}{cfg.version}" for p in province_list}
     id_dict["CAN"] = f"AGRIHR{cfg.version}"
 
-    db_path = paths["outputs"] / cfg.db_name
-    schema_sql = get_sql_schema(cfg.schema_version)
-    tables = prepare_database(db_path, schema_sql)
+    db_path = cfg.db_dir
+    # schema_sql = get_sql_schema(cfg.schema_version)
+    # tables = prepare_database(db_path, schema_sql)
+    tables = retrieve_tables_from_db(db_path)
     comb_dict = create_empty_comb_dict(db_path, tables)
 
     comb_dict["__domain__"] = {
@@ -83,7 +96,7 @@ def load_runtime_agri(
         "atl_pro": atl_pro,
         "commodity_list": commodity_list,
         "commodity_list_ex": commodity_list_ex,
-        "periods": cfg.periods,
+        "periods": cfg.future_periods,
     }
     comb_dict["__ids__"] = id_dict
     comb_dict["__version__"] = cfg.version

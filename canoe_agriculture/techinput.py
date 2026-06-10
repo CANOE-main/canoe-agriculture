@@ -1,47 +1,44 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 15 14:12:38 2025
-
-Updated on Oct 7 2025 — Adds logic to assign any remainder (<1) to diesel (dsl)
-@author: david
-"""
-
 from __future__ import annotations
+from sqlite3 import Cursor
 import pandas as pd
 from typing import Dict
-import numpy as np
-from canoe_agriculture.common import setup_logging
-from canoe_schema.v3_2.models import LimitTechInputSplitAnnual
+from canoe_agriculture.common import CANOEAgricultureConfig, setup_logging
+from canoe_schema.v4_0.models import LimitTechInputSplitAnnual
 
 logger = setup_logging()
 
-COM_TO_COL = {"elc": 15, "ng": 16, "dsl": 18, "gsl": 17}
-
 
 def build_limit_tech_input_split_agri(
-    comb_dict: Dict[str, pd.DataFrame], loaded_df: dict[str, pd.DataFrame]
+    module_config: CANOEAgricultureConfig,
+    db_cursor: Cursor,
+    comb_dict: Dict[str, pd.DataFrame],
+    nrcan_df: dict[str, pd.DataFrame],
 ) -> Dict[str, pd.DataFrame]:
     dom = comb_dict["__domain__"]
     ids = comb_dict["__ids__"]
-    province_list = dom["province_list"]
-    sector_abv = dom["sector_abv"]
-    periods = dom["periods"]
     atl_pro = set(dom["atl_pro"])
+    remainder_fuel = module_config.remainder_fuel_limit_tech_annual
 
-    rows = []
-    for region in province_list:
-        for per in periods:
+    configured_fuels = {f.shortname for f in module_config.input_fuels}
+    if remainder_fuel not in configured_fuels:
+        raise ValueError(
+            f"Remainder fuel '{remainder_fuel}' is not defined in input_fuels. "
+            f"Available fuels: {sorted(configured_fuels)}"
+        )
+
+    limit_tech_annual_rows = []
+    for region in module_config.province_list:
+        for per in module_config.future_periods:
             tis_vals: list[float | str] = []
             coms: list[str] = []
 
-            # Load values from dataframes
-            for com, idx in COM_TO_COL.items():
+            nrcan_key = "ATL" if region in atl_pro else region
+            nrcan_year = str(module_config.NRCan_year)
+
+            for fuel in module_config.input_fuels:
                 try:
-                    value = (
-                        loaded_df["ATL"]["2022"][idx]
-                        if region in atl_pro
-                        else loaded_df[region]["2022"][idx]
-                    )
+                    value = nrcan_df[nrcan_key][nrcan_year][fuel.nrcan_row_idx]
                 except Exception:
                     value = None
                 if value in (None, "0.0"):
@@ -51,63 +48,53 @@ def build_limit_tech_input_split_agri(
                 else:
                     tis = round(float(value) / 100, 3)
                 tis_vals.append(tis)
-                coms.append(com)
+                coms.append(fuel.shortname)
 
             na_count = tis_vals.count("na")
             float_vals = [v for v in tis_vals if isinstance(v, float)]
             total_known = sum(float_vals)
 
-            # If total exceeds 1.0, correct smallest float downward
+            # If total exceeds 1.0, correct the smallest value downward
             if total_known > 1.0 and float_vals:
                 excess = round(total_known - 1.0, 3)
                 min_val = min(float_vals)
-                min_idx = tis_vals.index(min_val)
-                corrected = max(0.0, round(min_val - excess, 3))
-                tis_vals[min_idx] = corrected
+                tis_vals[tis_vals.index(min_val)] = max(0.0, round(min_val - excess, 3))
                 float_vals = [v for v in tis_vals if isinstance(v, float)]
                 total_known = sum(float_vals)
 
-            # If total is less than 1, remainder goes to 'dsl'
+            # Remainder below 1.0 is assigned to remainder_fuel
             if total_known < 1.0:
                 remainder = round(0.999 - total_known, 3)
-                if "dsl" in coms:
-                    dsl_idx = coms.index("dsl")
+                if remainder_fuel in coms:
+                    dsl_idx = coms.index(remainder_fuel)
                     if isinstance(tis_vals[dsl_idx], float):
                         tis_vals[dsl_idx] = round(tis_vals[dsl_idx] + remainder, 3)
-                    elif tis_vals[dsl_idx] == "na":
+                    else:  # "na"
                         tis_vals[dsl_idx] = remainder
-                    else:
-                        tis_vals.append(remainder)
-                        coms.append("dsl")
                 else:
-                    # If no dsl entry exists, create one
                     tis_vals.append(remainder)
-                    coms.append("dsl")
+                    coms.append(remainder_fuel)
 
-            # Recompute total for safety
             float_vals = [v for v in tis_vals if isinstance(v, float)]
             total_known = sum(float_vals)
 
-            # Build dataframe rows
-            for i, tis in enumerate(tis_vals):
-                com = coms[i]
+            for com, tis in zip(coms, tis_vals):
                 if tis != "na":
                     final_val = float(tis)
                 else:
                     if na_count == 0:
                         continue
-                    missing_total = max(0.0, 1.0 - total_known)
-                    final_val = round(missing_total / na_count, 3)
+                    final_val = round(max(0.0, 1.0 - total_known) / na_count, 3)
 
-                rows.append(
+                limit_tech_annual_rows.append(
                     LimitTechInputSplitAnnual(
                         region=region,
                         period=per,
-                        input_comm=f"A_{com}",
-                        tech=f"{sector_abv}AGRI",
+                        input_comm=f"{module_config.sector_initial}_{com}",
+                        tech=f"{module_config.sector_initial}_{module_config.sector_abv}",
                         operator="ge",
                         proportion=final_val,
-                        notes="Calculated from NRCan comprehensive database. If values were n.a., remainder to 100% assigned to diesel.",
+                        notes=f"Calculated from NRCan comprehensive database. If values were n.a., remainder to 100% assigned to {remainder_fuel}.",
                         data_source="A1",
                         dq_cred=2,
                         dq_geog=1,
@@ -118,9 +105,8 @@ def build_limit_tech_input_split_agri(
                     )
                 )
 
-    df = pd.DataFrame([row.model_dump(mode="python") for row in rows])
-    comb_dict["LimitTechInputSplitAnnual"] = pd.concat(
-        [comb_dict["LimitTechInputSplitAnnual"], df], ignore_index=True
+    db_cursor.executemany(
+        *LimitTechInputSplitAnnual.bulk_insert_or_ignore_sql(limit_tech_annual_rows)
     )
-    logger.info("LimitTechInputSplitAnnual rows: %d", len(rows))
+    logger.info("Demand rows: %d", len(limit_tech_annual_rows))
     return comb_dict
