@@ -132,7 +132,6 @@ def build_limit_tech_input_and_efficiency(
     db_cursor.executemany(
         *LimitTechInputSplitAnnual.bulk_insert_or_ignore_sql(limit_tech_annual_rows)
     )
-    logger.info("LimitTechInputSplitAnnual rows: %d", len(limit_tech_annual_rows))
+    logger.info(f"LimitTechInputSplitAnnual rows: {len(limit_tech_annual_rows)}")
     db_cursor.executemany(*Efficiency.bulk_insert_or_ignore_sql(efficiency_rows))
-    logger.info("Efficiency rows: %d", len(efficiency_rows))
-    return comb_dict
+    logger.info(f"Efficiency rows: {len(efficiency_rows)}")

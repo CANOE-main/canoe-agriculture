@@ -48,5 +48,5 @@ def build_cost_invest_agri(
     comb_dict["CostInvest"] = pd.concat(
         [comb_dict["CostInvest"], df], ignore_index=True
     )
-    logger.info("CostInvest rows: %d", len(rows))
+    logger.info(f"CostInvest rows: {len(rows)}")
     return comb_dict

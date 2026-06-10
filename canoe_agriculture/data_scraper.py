@@ -39,7 +39,7 @@ def load_cached_or_fetch_agri(
     pop_cache = cache_dir / "pop_df.pkl"
 
     if df_cache.exists():
-        logger.info("Cache hit: %s", df_cache)
+        logger.info(f"Cache hit: {df_cache}")
         loaded_df = pickle.loads(df_cache.read_bytes())
     else:
         sess = _session()
@@ -73,7 +73,7 @@ def load_cached_or_fetch_agri(
         df_cache.write_bytes(pickle.dumps(loaded_df))
 
     if pop_cache.exists():
-        logger.info("Cache hit: %s", pop_cache)
+        logger.info(f"Cache hit: {pop_cache}")
         pop_df = pickle.loads(pop_cache.read_bytes())
     else:
         r = _session().get(CER_URL, timeout=45)

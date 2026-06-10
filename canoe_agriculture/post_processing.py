@@ -86,5 +86,5 @@ def add_datasets_and_sources_agri(
         )
     db_cursor.executemany(*DataSource.bulk_insert_or_ignore_sql(dssrc_rows))
     logger.info(
-        "Post-processing: %d DataSet, %d DataSource", len(ds_rows), len(dssrc_rows)
+        f"Post-processing: {len(ds_rows)} DataSet, {len(dssrc_rows)} DataSource"
     )

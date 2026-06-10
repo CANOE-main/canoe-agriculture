@@ -34,7 +34,7 @@ def prepare_database(db_path: Path, schema_sql: str) -> list[str]:
         conn.executescript(schema_sql)
 
     tables = retrieve_tables_from_db(db_path)
-    logger.info("Prepared new DB with %d tables", len(tables))
+    logger.info(f"Prepared new DB with {len(tables)} tables")
     return tables
 
 

@@ -22,7 +22,7 @@ def load_statcan_agri_shares(cache_dir: Path) -> dict[str, dict[str, float]]:
     ensure_dir(cache_dir)
     cache_file = cache_dir / "statcan_agri.pkl"
     if cache_file.exists():
-        logger.info("StatCan agri cache hit: %s", cache_file)
+        logger.info(f"StatCan agri cache hit: {cache_file}")
         return pickle.loads(cache_file.read_bytes())
 
     try:
