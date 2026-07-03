@@ -1,4 +1,4 @@
-db_dir="input/canoe.sqlite"
+db_dir="input/canoe-v4.sqlite"
 
 #Write the version of the NRCan Comprehensive database you wish to use
 NRCan_year = 2022 #Check the NRCan website and find the most reason year in the database, that is the value to use
@@ -11,7 +11,7 @@ schema_version = "4.0"
 
 #Choose the time periods being included in the study
 existing_periods = []
-future_periods= [2025, 2030, 2035, 2040, 2045, 2050]
+future_periods= [2025, 2030, 2035, 2040, 2045]
 
 province_list = ["AB", "ON", "BC", "MB", "SK", "QC", "PEI", "NS", "NB", "NLLAB"]
 remainder_fuel_limit_tech_annual = "dsl"

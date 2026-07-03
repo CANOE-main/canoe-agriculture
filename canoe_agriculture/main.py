@@ -57,13 +57,13 @@ def main() -> None:
     )
 
     # 2) Demand + ExistingCapacity (GDP scaling + ATL split)
-    comb_dict = build_demand_and_capacity_agri(
+    build_demand_and_capacity_agri(
         cfg, comb_dict, nrcan_df, pop_df, atl_shares, db_cursor
     )
 
     # 3) LimitTechInputSplitAnnual from NRCan shares (ATL uses ATL table)
     # Efficiency rows are built here but default to 1
-    comb_dict = build_limit_tech_input_and_efficiency(
+    build_limit_tech_input_and_efficiency(
         cfg, db_cursor, comb_dict, nrcan_df
     )
 
@@ -71,11 +71,11 @@ def main() -> None:
     # comb_dict = build_cost_invest_agri(comb_dict)
 
     # 4) Data provenance: register the datasets used
-    comb_dict = add_datasets_and_sources_agri(db_cursor, comb_dict)
+    add_datasets_and_sources_agri(db_cursor, comb_dict)
 
     db_conn.commit()
     db_conn.close()
-    logger.info("Done. SQLite written to %s", db_path)
+    logger.info(f"Done. SQLite written to {db_path}")
 
 
 if __name__ == "__main__":
