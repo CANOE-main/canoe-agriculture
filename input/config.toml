@@ -1,10 +1,10 @@
-db_dir="input/canoe-v4.sqlite"
+db_dir="~/OneDrive/dev/canoe-data/master-db/canoe-v4-master.sqlite"
 
 #Write the version of the NRCan Comprehensive database you wish to use
 NRCan_year = 2022 #Check the NRCan website and find the most reason year in the database, that is the value to use
 
 #Version control: What version of the data are we using, we track numerically and they can be found in DataSet table
-version = '001' #Place within the quotation marks
+version = '003' #Place within the quotation marks
 
 #Choose the schema version you wish to use; the lower the number, the more simple the representation. Default is 3_1
 schema_version = "4.0"

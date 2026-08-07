@@ -6,12 +6,12 @@ Created on Fri Sep 26 08:48:03 2025
 """
 
 from __future__ import annotations
-import logging
-from pathlib import Path
+
 import tomllib
-from typing import Any, Dict, Literal
-import yaml
-from pydantic import BaseModel, ConfigDict
+from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, field_validator
 
 LOGGER_NAME = "agri_etl"
 
@@ -28,7 +28,7 @@ class CANOEAgricultureConfig(BaseModel):
 
     # Fields that may be pushed up to a common config
     schema_version: str = "3.1"
-    db_dir: str = "CAN_agriculture.sqlite"
+    db_dir: Path = Path("CAN_agriculture.sqlite")
     existing_periods: list[int]
     future_periods: list[int]
     # TODO replace with CANOEProvince class
@@ -50,6 +50,11 @@ class CANOEAgricultureConfig(BaseModel):
     def validate_from_toml(cls, toml_dir: str) -> CANOEAgricultureConfig:
         with Path(toml_dir).open("rb") as f:
             return CANOEAgricultureConfig.model_validate(tomllib.load(f))
+
+    @field_validator("db_dir")
+    @classmethod
+    def expand_path(cls, v: Path) -> Path:
+        return v.expanduser()
 
 
 def ensure_dir(path: Path) -> Path:
