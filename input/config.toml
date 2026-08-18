@@ -17,7 +17,7 @@ province_list = ["AB", "ON", "BC", "MB", "SK", "QC", "PEI", "NS", "NB", "NLLAB"]
 remainder_fuel_limit_tech_annual = "dsl"
 
 input_fuels =[
-  { shortname = "elc", longname = "Electricity",   nrcan_row_idx = 15 },
+  { shortname = "elc", longname = "Electricity",   nrcan_row_idx = 15, commodity_type = "p" },
   { shortname = "dsl", longname = "Diesel",        nrcan_row_idx = 18 },
   { shortname = "gsl", longname = "Gasoline",      nrcan_row_idx = 17 },
   { shortname = "ng",  longname = "Natural Gas",   nrcan_row_idx = 16 },

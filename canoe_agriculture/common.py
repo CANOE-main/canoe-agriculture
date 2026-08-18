@@ -11,6 +11,7 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
+from canoe_schema.v4_0.models import CommodityTypeCode
 from pydantic import BaseModel, ConfigDict, field_validator
 
 LOGGER_NAME = "agri_etl"
@@ -20,6 +21,7 @@ class CANOEInputFuel(BaseModel):
     shortname: str
     longname: str
     nrcan_row_idx: int
+    commodity_type: CommodityTypeCode = CommodityTypeCode.A
 
 
 class CANOEAgricultureConfig(BaseModel):

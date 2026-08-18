@@ -52,7 +52,7 @@ def add_technology_and_fuel_commodities(
         comm_rows.append(
             Commodity(
                 name=f"{module_config.sector_initial}_{input_commodity.shortname}",
-                flag="a",
+                flag=input_commodity.commodity_type,
                 description=f"Represents {input_commodity.longname} in the agriculture sector",
                 data_id=data_id_code,
             )
