@@ -1,4 +1,4 @@
-db_dir="~/OneDrive/dev/canoe-data/master-db/canoe-v4-master.sqlite"
+db_dir="test.sqlite"
 
 #Write the version of the NRCan Comprehensive database you wish to use
 NRCan_year = 2022 #Check the NRCan website and find the most reason year in the database, that is the value to use

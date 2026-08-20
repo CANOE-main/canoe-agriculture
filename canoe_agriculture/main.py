@@ -21,7 +21,7 @@ from canoe_agriculture.statcan import load_statcan_agri_shares
 from canoe_agriculture.demands import build_demand_and_capacity_agri
 from canoe_agriculture.techinput import build_limit_tech_input_and_efficiency
 from canoe_agriculture.post_processing import add_datasets_and_sources_agri
-
+from canoe_agriculture.electricity_patch import add_electricity_bridge
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -55,7 +55,13 @@ def main() -> None:
     add_technology_and_fuel_commodities(
         module_config=cfg, db_cursor=db_cursor, data_id_code=comb_dict["__ids__"]["CAN"]
     )
-
+    
+    add_electricity_bridge(
+    module_config=cfg,
+    db_cursor=db_cursor,
+    comb_dict=comb_dict,
+    )
+    
     # 2) Demand + ExistingCapacity (GDP scaling + ATL split)
     build_demand_and_capacity_agri(
         cfg, comb_dict, nrcan_df, pop_df, atl_shares, db_cursor
