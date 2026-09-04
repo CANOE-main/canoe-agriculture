@@ -5,10 +5,8 @@ import requests
 import zipfile
 import io
 import pandas as pd
-
-from canoe_agriculture.common import setup_logging, ensure_dir
-
-logger = setup_logging()
+from loguru import logger
+from canoe_agriculture.common import ensure_dir
 STATCAN_URL = "https://www150.statcan.gc.ca/n1/tbl/csv/25100029-eng.zip"
 REGION_LIST = [
     "Newfoundland and Labrador",
@@ -24,7 +22,7 @@ def load_statcan_agri_shares(cache_dir: Path) -> dict[str, dict[str, float]]:
     ensure_dir(cache_dir)
     cache_file = cache_dir / "statcan_agri.pkl"
     if cache_file.exists():
-        logger.info("StatCan agri cache hit: %s", cache_file)
+        logger.info(f"StatCan agri cache hit: {cache_file}")
         return pickle.loads(cache_file.read_bytes())
 
     try:

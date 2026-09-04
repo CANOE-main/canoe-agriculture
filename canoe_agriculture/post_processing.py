@@ -6,24 +6,18 @@ Created on Sun Aug 17 13:04:16 2025
 """
 
 from __future__ import annotations
+from sqlite3 import Cursor
 from typing import Dict
 import pandas as pd
-from canoe_agriculture.common import setup_logging
-from canoe_schema.v3_2.models import (
+from loguru import logger
+from canoe_schema.v4_0.models import (
     DataSet,
-    DataSource,
-    TimeOfDay,
-    TimePeriod,
-    TimeSeason,
-    SeasonLabel,
-    TimeSegmentFraction,
-    Region,
+    DataSource
 )
-
-logger = setup_logging()
 
 
 def add_datasets_and_sources_agri(
+        db_cursor: Cursor,
     comb_dict: Dict[str, pd.DataFrame],
 ) -> Dict[str, pd.DataFrame]:
     dom = comb_dict["__domain__"]
@@ -57,9 +51,7 @@ def add_datasets_and_sources_agri(
             changelog="Original sector design",
         )
     )
-
-    ds_df = pd.DataFrame([row.model_dump(mode="python") for row in ds_rows])
-    comb_dict["DataSet"] = pd.concat([comb_dict["DataSet"], ds_df], ignore_index=True)
+    db_cursor.executemany(*DataSet.bulk_insert_or_ignore_sql(ds_rows))
 
     src_rows = [
         [
@@ -92,93 +84,7 @@ def add_datasets_and_sources_agri(
         dssrc_rows.append(
             DataSource(source_id=row[0], source=row[1], notes=row[2], data_id=row[3])
         )
-    src_df = pd.DataFrame([row.model_dump(mode="python") for row in dssrc_rows])
-    comb_dict["DataSource"] = pd.concat(
-        [comb_dict["DataSource"], src_df], ignore_index=True
-    )
+    db_cursor.executemany(*DataSource.bulk_insert_or_ignore_sql(dssrc_rows))
     logger.info(
-        "Post-processing: %d DataSet, %d DataSource", len(ds_rows), len(src_rows)
+        f"Post-processing: {len(ds_rows)} DataSet, {len(dssrc_rows)} DataSource"
     )
-    return comb_dict
-
-
-def add_time_agri(comb_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
-    dom = comb_dict["__domain__"]
-    periods = dom["periods"]
-    time_of_day = []
-    province_list = dom["province_list"]
-    x = 1
-    while x != 25:
-        if x < 10:
-            time_of_day.append("H0" + str(x))
-        else:
-            time_of_day.append("H" + str(x))
-        x += 1
-    time_season = []
-    x = 1
-    while x != 365:
-        if x < 10:
-            time_season.append("D00" + str(x))
-        if x > 9 and x < 100:
-            time_season.append("D0" + str(x))
-        else:
-            time_season.append("D" + str(x))
-        x += 1
-    tod = []
-    x = 0
-    for day in time_of_day:
-        tod.append(TimeOfDay(sequence=x, tod=day))
-        x += 1
-    tp = []
-    x = 0
-    for period in periods:
-        tp.append(TimePeriod(sequence=x, period=period, flag="f"))
-        x += 1
-    tp.append(TimePeriod(sequence=x, period=2055, flag="f"))
-
-    ts = []
-    for period in periods:
-        x = 0
-        for season in time_season:
-            ts.append(TimeSeason(period=period, sequence=x, season=season, notes=""))
-            x += 1
-    sl = []
-    for season in time_season:
-        sl.append(SeasonLabel(season=season, notes=""))
-    tsf = []
-    for period in periods:
-        for season in time_season:
-            for day in time_of_day:
-                val = float(1 / 8760)
-                tsf.append(
-                    TimeSegmentFraction(
-                        period=period, season=season, tod=day, segfrac=val, notes=""
-                    )
-                )
-    reg = []
-    for region in province_list:
-        reg.append(Region(region=region, notes=""))
-
-    tod_df = pd.DataFrame([row.model_dump(mode="python") for row in tod])
-    comb_dict["TimeOfDay"] = pd.concat(
-        [comb_dict["TimeOfDay"], tod_df], ignore_index=True
-    )
-    tp_df = pd.DataFrame([row.model_dump(mode="python") for row in tp])
-    comb_dict["TimePeriod"] = pd.concat(
-        [comb_dict["TimePeriod"], tp_df], ignore_index=True
-    )
-    ts_df = pd.DataFrame([row.model_dump(mode="python") for row in ts])
-    comb_dict["TimeSeason"] = pd.concat(
-        [comb_dict["TimeSeason"], ts_df], ignore_index=True
-    )
-    sl_df = pd.DataFrame([row.model_dump(mode="python") for row in sl])
-    comb_dict["SeasonLabel"] = pd.concat(
-        [comb_dict["SeasonLabel"], sl_df], ignore_index=True
-    )
-    tsf_df = pd.DataFrame([row.model_dump(mode="python") for row in tsf])
-    comb_dict["TimeSegmentFraction"] = pd.concat(
-        [comb_dict["TimeSegmentFraction"], tsf_df], ignore_index=True
-    )
-    reg_df = pd.DataFrame([row.model_dump(mode="python") for row in reg])
-    comb_dict["Region"] = pd.concat([comb_dict["Region"], reg_df], ignore_index=True)
-    return comb_dict

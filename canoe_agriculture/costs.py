@@ -17,6 +17,9 @@ logger = setup_logging()
 def build_cost_invest_agri(
     comb_dict: Dict[str, pd.DataFrame],
 ) -> Dict[str, pd.DataFrame]:
+    """
+    TODO This needs refactoring before it can be used
+    """
     dom = comb_dict["__domain__"]
     ids = comb_dict["__ids__"]
     province_list = dom["province_list"]
@@ -45,5 +48,5 @@ def build_cost_invest_agri(
     comb_dict["CostInvest"] = pd.concat(
         [comb_dict["CostInvest"], df], ignore_index=True
     )
-    logger.info("CostInvest rows: %d", len(rows))
+    logger.info(f"CostInvest rows: {len(rows)}")
     return comb_dict
